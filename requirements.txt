@@ -1,0 +1,9 @@
+conda create -n py37 python=3.7
+
+conda activate py37
+
+pip install numpy==1.19.5 scikit-image==0.18.3 opencv-python==4.6.0.66
+
+pip install tf-slim
+
+python3 -m pip install 'tensorflow[and-cuda]'
