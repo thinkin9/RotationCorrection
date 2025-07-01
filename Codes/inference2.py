@@ -7,7 +7,10 @@ import cv2 as cv
 
 from model import RotationCorrection2
 from utils import load, save, DataLoader
-import skimage
+# import skimage 
+from skimage.metrics import structural_similarity as compare_ssim
+from skimage.metrics import peak_signal_noise_ratio as compare_psnr
+
 import imageio
 import glob
 
@@ -31,6 +34,8 @@ def create_gif(image_list, gif_name, duration=0.35):
 
 # define dataset
 with tf.name_scope('dataset'):
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
     test_inputs_clips_tensor = tf.placeholder(shape=[batch_size, None, None, 3], dtype=tf.float32)
     test_input = test_inputs_clips_tensor
     print('test input = {}'.format(test_input))
@@ -38,7 +43,7 @@ with tf.name_scope('dataset'):
 
 
 # define testing RotationCorrection function 
-with tf.variable_scope('generator', reuse=None):
+with tf.compat.v1.variable_scope('generator', reuse=None):
     test_final_result = RotationCorrection2(test_input)
     print('testing = {}'.format(tf.get_variable_scope().name))
 

@@ -2,13 +2,13 @@
 TRAIN_FOLDER = '/data/cylin/nl/Data/DRC-D/training'
 
 #testing dataset path
-TEST_FOLDER = '/data/cylin/nl/Data/DRC-D/testing'
+TEST_FOLDER = '/root/RotationCorrection/testing'
 
 #testing dataset path for other datasets
 TEST_OTHER_FOLDER = '../Other_dataset/'
 
 #GPU index
-GPU = '4'
+GPU = '1'
 
 #batch size for training
 TRAIN_BATCH_SIZE = 4

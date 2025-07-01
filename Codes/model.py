@@ -1,7 +1,11 @@
 import tensorflow as tf
 import numpy as np
-import tensorflow.contrib.slim as slim
-from tensorflow.contrib.layers import conv2d, conv2d_transpose
+# import tensorflow.contrib.slim as slim
+import tf_slim as slim
+from tf_slim.layers import convolution2d as conv2d
+from tf_slim.layers import convolution2d_transpose as conv2d_transpose
+# from tensorflow.keras.layers import Conv2D as conv2d
+# from tensorflow.keras.layers import Conv2DTranspose as conv2d_transpose
 import tf_spatial_transform_local
 import math
 import tf_mesh2flow
@@ -98,7 +102,7 @@ def shift2mesh(mesh_shift, width, height):
 
 
 def flow_resize_operation(flow_input, height, width):
-    flow_tmp = tf.image.resize_images(flow_input, [height,width],method=1)
+    flow_tmp = tf.image.resize(flow_input, [height, width], method='bilinear')
     flow_x = flow_tmp[:, :, :, 0] * tf.cast(width, tf.float32) /512.
     flow_y = flow_tmp[:, :, :, 1] * tf.cast(height, tf.float32) /384.
     flow_output = tf.stack([flow_x, flow_y], 3)
@@ -127,7 +131,7 @@ def RotationCorrection2(train_input):
     height = tf.shape(train_input_ori)[1]
     width = tf.shape(train_input_ori)[2]
     
-    train_input = tf.image.resize_images(train_input, [384,512],method=0)
+    train_input = tf.image.resize(train_input, [384, 512], method='nearest')
     mesh, rotation_mesh, residual_flow = build_model(train_input, is_reuse = None) 
     # final flow
     flow = tf_mesh2flow.mesh2flow(mesh) + residual_flow
@@ -147,27 +151,27 @@ def _maxpool2d(x, kernel_size, stride):
 
 def feature_extractor(image_tf):
     feature = []
-    with tf.variable_scope('conv_block1'): # H
+    with tf.compat.v1.variable_scope('conv_block1'): # H
       conv1 = conv2d(inputs=image_tf, num_outputs=64, kernel_size=3, rate=1, activation_fn=tf.nn.relu)
       conv1 = conv2d(inputs=conv1, num_outputs=64, kernel_size=3, rate=1, activation_fn=tf.nn.relu)
       feature.append(conv1)
       maxpool1 = _maxpool2d(conv1, 2, 2) # H/2
-    with tf.variable_scope('conv_block2'):
+    with tf.compat.v1.variable_scope('conv_block2'):
       conv2 = conv2d(inputs=maxpool1, num_outputs=64, kernel_size=3, activation_fn=tf.nn.relu)
       conv2 = conv2d(inputs=conv2, num_outputs=64, kernel_size=3, activation_fn=tf.nn.relu)
       feature.append(conv2)
       maxpool2 = _maxpool2d(conv2, 2, 2) # H/4
-    with tf.variable_scope('conv_block3'):
+    with tf.compat.v1.variable_scope('conv_block3'):
       conv3 = conv2d(inputs=maxpool2, num_outputs=128, kernel_size=3, activation_fn=tf.nn.relu)
       conv3 = conv2d(inputs=conv3, num_outputs=128, kernel_size=3, activation_fn=tf.nn.relu)
       feature.append(conv3)
       maxpool3 = _maxpool2d(conv3, 2, 2) # H/8
-    with tf.variable_scope('conv_block4'):
+    with tf.compat.v1.variable_scope('conv_block4'):
       conv4 = conv2d(inputs=maxpool3, num_outputs=128, kernel_size=3, activation_fn=tf.nn.relu)
       conv4 = conv2d(inputs=conv4, num_outputs=128, kernel_size=3, activation_fn=tf.nn.relu)
       feature.append(conv4)
       maxpool4 = _maxpool2d(conv4, 2, 2) #32*24
-    with tf.variable_scope('conv_block5'):
+    with tf.compat.v1.variable_scope('conv_block5'):
       conv5 = conv2d(inputs=maxpool4, num_outputs=256, kernel_size=3, activation_fn=tf.nn.relu)
       conv5 = conv2d(inputs=conv5, num_outputs=256, kernel_size=3, activation_fn=tf.nn.relu)
       feature.append(conv5)
@@ -231,14 +235,14 @@ def decoder2(feature):
 
 
 def build_model(train_input, is_reuse):
-    with tf.variable_scope('model', reuse = is_reuse):
+    with tf.compat.v1.variable_scope('model', reuse = is_reuse):
         batch_size = tf.shape(train_input)[0]
     
     
-        with tf.variable_scope('feature_extract', reuse = None): 
+        with tf.compat.v1.variable_scope('feature_extract', reuse = None): 
             feature = feature_extractor(train_input)
       
-        with tf.variable_scope('regression', reuse = None): 
+        with tf.compat.v1.variable_scope('regression', reuse = None): 
             mesh_motion = regression_Net(feature[-1])
       
         mesh = shift2mesh(mesh_motion, 512, 384)
@@ -247,10 +251,10 @@ def build_model(train_input, is_reuse):
         #rotation_mesh = bilinear_warp(train_input, mesh2flow)
     
     
-        with tf.variable_scope('feature_extract2', reuse = None): 
+        with tf.compat.v1.variable_scope('feature_extract2', reuse = None): 
             feature_rotation_mesh = feature_extractor(rotation_mesh)
     
-        with tf.variable_scope('decoder2', reuse = None): 
+        with tf.compat.v1.variable_scope('decoder2', reuse = None): 
             residual_flow = decoder2(feature_rotation_mesh)
       
     

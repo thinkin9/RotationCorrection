@@ -44,7 +44,7 @@ print("[i] Loaded pre-trained vgg19 parameters")
 
 # build VGG19 to load pre-trained parameters
 def build_vgg19(input,reuse=False):
-    with tf.variable_scope("vgg19"):
+    with tf.compat.v1.variable_scope("vgg19"):
         if reuse:
             tf.get_variable_scope().reuse_variables()
         net={}
@@ -91,7 +91,7 @@ with tf.name_scope('dataset'):
 
 
 # define training generator function
-with tf.variable_scope('generator', reuse=None):
+with tf.compat.v1.variable_scope('generator', reuse=None):
     train_mesh, train_horizon, train_flow, train_horizon2 = RotationCorrection(train_input)
     print('training = {}'.format(tf.get_variable_scope().name))
    
@@ -116,7 +116,7 @@ else:
 lamda_symmetry = 0.1  
 if lamda_symmetry != 0:
 
-    with tf.variable_scope('generator', reuse=True):
+    with tf.compat.v1.variable_scope('generator', reuse=True):
         train_mesh_sym, train_horizon_sym, train_flow_sym, train_horizon2_sym = RotationCorrection(tf.image.flip_left_right(train_input))
     train_horizon_feature_sym_sym = build_vgg19((tf.image.flip_left_right(train_horizon_sym)+1)*127.5, reuse=True)
     train_horizon2_feature_sym_sym = build_vgg19((tf.image.flip_left_right(train_horizon2_sym)+1)*127.5, reuse=True)

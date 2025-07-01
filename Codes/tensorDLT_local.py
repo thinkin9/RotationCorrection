@@ -178,7 +178,7 @@ def solve_DLT(orig_pt4, pred_pt4):
     A8 = tf.matmul(M71_tile, pred_pt4) *  tf.matmul(M8_tile, orig_pt4  )# Column 8
 
     # tmp = tf.reshape(A1, [-1, 8])  #batch_size * 8
-    # A_mat: batch_size * 8 * 8          A1-A8相当�?*8中的每一�?
+    # A_mat: batch_size * 8 * 8          A1-A8相当�?*8中的每一�?
     A_mat = tf.transpose(tf.stack([tf.reshape(A1 ,[-1 ,8]) ,tf.reshape(A2 ,[-1 ,8]), \
                                    tf.reshape(A3 ,[-1 ,8]) ,tf.reshape(A4 ,[-1 ,8]), \
                                    tf.reshape(A5 ,[-1 ,8]) ,tf.reshape(A6 ,[-1 ,8]), \
@@ -191,7 +191,7 @@ def solve_DLT(orig_pt4, pred_pt4):
     # Solve the Ax = b
     #print(tf.shape(A_mat)[0])
     #A_mat = A_mat + tf.tile(tf.expand_dims(tf.eye(8) * 10e-4, [0]),[batch_size ,1 ,1])
-    H_8el = tf.matrix_solve(A_mat , b_mat)  # BATCH_SIZE x 8.
+    H_8el = tf.compat.v1.matrix_solve(A_mat , b_mat)  # BATCH_SIZE x 8.
     print('--shape of H_8el', H_8el)
 
 

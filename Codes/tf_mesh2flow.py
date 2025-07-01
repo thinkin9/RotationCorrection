@@ -44,7 +44,7 @@ def mesh2flow(mesh, name='Mesh2Flow', **kwargs):
     """
 
     def _repeat(x, n_repeats):
-        with tf.variable_scope('_repeat'):
+        with tf.compat.v1.variable_scope('_repeat'):
             rep = tf.transpose(
                 tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
             rep = tf.cast(rep, 'int32')
@@ -52,7 +52,7 @@ def mesh2flow(mesh, name='Mesh2Flow', **kwargs):
             return tf.reshape(x, [-1])
 
     def _interpolate(im, x, y, out_size):
-        with tf.variable_scope('_interpolate'):
+        with tf.compat.v1.variable_scope('_interpolate'):
             # constants
             num_batch = tf.shape(im)[0]
             height = tf.shape(im)[1]
@@ -120,7 +120,7 @@ def mesh2flow(mesh, name='Mesh2Flow', **kwargs):
     #input:  batch_size*(grid_h+1)*(grid_w+1)*2
     #output: batch_size*grid_h*grid_w*9
     def get_Hs(theta, width, height): 
-        with tf.variable_scope('get_Hs'):
+        with tf.compat.v1.variable_scope('get_Hs'):
             num_batch = tf.shape(theta)[0]
             h = height / grid_h
             w = width / grid_w
@@ -180,7 +180,7 @@ def mesh2flow(mesh, name='Mesh2Flow', **kwargs):
 
 
     def _transform3(theta):
-        with tf.variable_scope('_transform'):
+        with tf.compat.v1.variable_scope('_transform'):
             num_batch = tf.shape(theta)[0]
             height = 384
             width = 512
@@ -196,7 +196,8 @@ def mesh2flow(mesh, name='Mesh2Flow', **kwargs):
             ##########################################
             print("Hs")
             print(Hs.shape)
-            H_array = UpSampling2D(size=(384/grid_h, 512/grid_w))(Hs)
+            # H_array = UpSampling2D(size=(384/grid_h, 512/grid_w))(Hs)
+            H_array = UpSampling2D(size=(384 // grid_h, 512 // grid_w))(Hs)
             H_array = tf.reshape(H_array, [-1, 3, 3])
             ##########################################
             
@@ -251,7 +252,7 @@ def mesh2flow(mesh, name='Mesh2Flow', **kwargs):
             return flow
 
     
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
        
         flow = _transform3(mesh)
         

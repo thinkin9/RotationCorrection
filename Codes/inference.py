@@ -7,9 +7,11 @@ import cv2 as cv
 
 from model import RotationCorrection
 from utils import load, save, DataLoader
-import skimage
-import imageio
+# import skimage 
+from skimage.metrics import structural_similarity as compare_ssim
+from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 
+import imageio
 
 
 import constant
@@ -26,6 +28,11 @@ snapshot_dir = constant.SNAPSHOT_DIR + '/pretrained_model/model.ckpt-150000'
 
 # define dataset
 with tf.name_scope('dataset'):
+    # shape = tf.TensorShape([batch_size, None, None, 3 * 2])
+    # dtype = tf.float32
+    # test_inputs_clips_tensor = tf.keras.ops.empty(shape, dtype)
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
     test_inputs_clips_tensor = tf.placeholder(shape=[batch_size, None, None, 3 * 2], dtype=tf.float32)
     test_input = test_inputs_clips_tensor[...,0:3]
     test_gt = test_inputs_clips_tensor[...,3:6]
@@ -35,7 +42,7 @@ with tf.name_scope('dataset'):
 
 
 # define testing RotationCorrection function 
-with tf.variable_scope('generator', reuse=None):
+with tf.compat.v1.variable_scope('generator', reuse=None):
     test_mesh, test_horizon, test_flow, test_horizon2 = RotationCorrection(test_input)
     print('testing = {}'.format(tf.get_variable_scope().name))
 
@@ -89,13 +96,13 @@ with tf.Session(config=config) as sess:
             path = "../result_meshflow/" + str(i+1).zfill(5) + ".jpg"
             cv.imwrite(path, rotation2)
             
-            psnr = skimage.measure.compare_psnr(rotation, rotation_gt, 255)
-            ssim = skimage.measure.compare_ssim(rotation, rotation_gt, data_range=255, multichannel=True)
+            psnr = compare_psnr(rotation, rotation_gt, data_range=255)
+            ssim = compare_ssim(rotation, rotation_gt, data_range=255, multichannel=True)
             psnr_list.append(psnr)
             ssim_list.append(ssim)
             
-            psnr2 = skimage.measure.compare_psnr(rotation2, rotation_gt, 255)
-            ssim2 = skimage.measure.compare_ssim(rotation2, rotation_gt, data_range=255, multichannel=True)
+            psnr2 = compare_psnr(rotation2, rotation_gt, data_range=255)
+            ssim2 = compare_ssim(rotation2, rotation_gt, data_range=255, multichannel=True)
             psnr_list2.append(psnr2)
             ssim_list2.append(ssim2)
             
